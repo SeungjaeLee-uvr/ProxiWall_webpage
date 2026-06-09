@@ -1,7 +1,15 @@
 # ProxiWall Web
 
-A concise project page for **ProxiWall**, an exploration of responsive spatial
-interfaces.
+A multi-page project site for **ProxiWall**, a distance-driven semantic zoom
+interface for HMD-free virtual museum exploration on a wall display.
+
+## Pages
+
+- `index.html` — project overview
+- `concept.html` — interaction modes and project evolution
+- `system.html` — tracking, rendering, and interaction pipeline
+- `research.html` — interviews, hypotheses, and study design
+- `archive.html` — downloadable proposal, interview, midterm, and progress decks
 
 ## Local preview
 
