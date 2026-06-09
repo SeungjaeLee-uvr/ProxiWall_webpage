@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="ProxiWall is an interactive wall experience that turns proximity into responsive spatial feedback."
+    />
+    <meta name="theme-color" content="#11150f" />
+    <title>ProxiWall — Space That Responds</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Manrope:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+    <script src="./script.js" defer></script>
+  </head>
+  <body>
+    <div class="ambient ambient-one"></div>
+    <div class="ambient ambient-two"></div>
+
+    <header class="site-header">
+      <a class="wordmark" href="#top" aria-label="ProxiWall home">
+        <span class="wordmark-dot"></span>
+        PROXIWALL
+      </a>
+      <nav aria-label="Main navigation">
+        <a href="#concept">Concept</a>
+        <a href="#system">System</a>
+        <a href="#status">Status</a>
+      </nav>
+      <a class="header-cta" href="#contact">Connect <span>↗</span></a>
+    </header>
+
+    <main id="top">
+      <section class="hero">
+        <div class="hero-copy">
+          <p class="eyebrow"><span>01</span> Interactive Spatial Interface</p>
+          <h1>Space that<br /><em>responds.</em></h1>
+          <p class="hero-description">
+            ProxiWall turns an ordinary surface into a responsive interface,
+            revealing digital behavior through human proximity and movement.
+          </p>
+          <div class="hero-actions">
+            <a class="button button-primary" href="#concept">Explore the project</a>
+            <a class="text-link" href="#system">See how it works <span>↓</span></a>
+          </div>
+        </div>
+
+        <div class="proximity-demo" aria-label="Interactive proximity visualization">
+          <div class="demo-grid"></div>
+          <div class="demo-label demo-label-top">
+            <span>LIVE FIELD</span>
+            <span class="status-light">ACTIVE</span>
+          </div>
+          <div class="range range-three"></div>
+          <div class="range range-two"></div>
+          <div class="range range-one"></div>
+          <div class="presence" id="presence">
+            <span class="presence-core"></span>
+          </div>
+          <div class="wall-plane">
+            <div class="wall-line"></div>
+            <span>SURFACE / 01</span>
+          </div>
+          <div class="distance-readout">
+            <span>DISTANCE</span>
+            <strong id="distance">1.42 m</strong>
+          </div>
+        </div>
+      </section>
+
+      <section class="statement" id="concept">
+        <p class="section-index">02 / CONCEPT</p>
+        <h2>
+          The wall is no longer a boundary.<br />
+          <span>It becomes a conversation.</span>
+        </h2>
+        <div class="statement-details">
+          <p>
+            ProxiWall explores what happens when architecture can sense people
+            before they touch it. Movement, distance, and dwell time become a
+            simple language for ambient interaction.
+          </p>
+          <div class="principles">
+            <span>01 &nbsp; Sense</span>
+            <span>02 &nbsp; Interpret</span>
+            <span>03 &nbsp; Respond</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="system" id="system">
+        <div class="section-heading">
+          <div>
+            <p class="section-index">03 / SYSTEM</p>
+            <h2>A simple loop.<br /><span>Endless behaviors.</span></h2>
+          </div>
+          <p>
+            Modular by design, ProxiWall connects spatial sensing to expressive
+            visual, sonic, or physical outputs.
+          </p>
+        </div>
+
+        <div class="system-grid">
+          <article>
+            <p class="card-number">01</p>
+            <div class="card-icon signal-icon"><i></i><i></i><i></i></div>
+            <h3>Sense</h3>
+            <p>Capture presence, distance, and motion around the surface.</p>
+            <span class="card-meta">INPUT / PROXIMITY</span>
+          </article>
+          <article>
+            <p class="card-number">02</p>
+            <div class="card-icon process-icon"><i></i><i></i><i></i><i></i></div>
+            <h3>Interpret</h3>
+            <p>Translate spatial signals into meaningful interaction states.</p>
+            <span class="card-meta">LOGIC / REAL TIME</span>
+          </article>
+          <article>
+            <p class="card-number">03</p>
+            <div class="card-icon response-icon"><i></i><i></i><i></i></div>
+            <h3>Respond</h3>
+            <p>Shape a living response through light, sound, and media.</p>
+            <span class="card-meta">OUTPUT / ADAPTIVE</span>
+          </article>
+        </div>
+      </section>
+
+      <section class="status-section" id="status">
+        <div>
+          <p class="section-index">04 / STATUS</p>
+          <h2>Currently in<br /><span>development.</span></h2>
+        </div>
+        <div class="status-panel">
+          <div class="status-row">
+            <span>PROJECT PHASE</span>
+            <strong>Prototype</strong>
+          </div>
+          <div class="status-row">
+            <span>FOCUS</span>
+            <strong>Spatial Interaction</strong>
+          </div>
+          <div class="status-row">
+            <span>UPDATED</span>
+            <strong>June 2026</strong>
+          </div>
+          <div class="progress-track"><span></span></div>
+          <p>
+            Testing the relationship between sensing range, movement, and
+            responsive feedback.
+          </p>
+        </div>
+      </section>
+    </main>
+
+    <footer id="contact">
+      <div>
+        <p class="eyebrow"><span>05</span> ProxiWall</p>
+        <h2>Move closer.</h2>
+      </div>
+      <p class="footer-note">An exploration of responsive space.</p>
+      <a class="back-to-top" href="#top">Back to top ↑</a>
+    </footer>
+  </body>
+</html>
