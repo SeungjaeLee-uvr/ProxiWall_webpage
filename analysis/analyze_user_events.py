@@ -19,9 +19,22 @@ ROOT = Path(__file__).resolve().parents[1]
 LOG_DIR = ROOT / "user_events_log"
 OUT_DIR = ROOT / "analysis" / "results"
 FIG_DIR = OUT_DIR / "figures"
-CONDITIONS = ["MoveDistance", "ScreenTouch"]
+INDIVIDUAL_FIG_DIR = FIG_DIR / "individual"
+CONDITIONS = ["Ours", "Baseline"]
 MODE_ORDER = ["Overview", "Browsing", "TouchConfirmed", "Detail"]
 MODE_RANK = {"Overview": 0, "Browsing": 1, "TouchConfirmed": 2, "Detail": 3}
+
+
+def save_individual_axes(fig: plt.Figure, axes, filenames: list[str]) -> None:
+    """Save every axes panel as a standalone image without removing composite figures."""
+    flat_axes = np.asarray(axes, dtype=object).reshape(-1)
+    if len(flat_axes) != len(filenames):
+        raise ValueError(f"Expected {len(flat_axes)} filenames, got {len(filenames)}")
+    fig.canvas.draw()
+    renderer = fig.canvas.get_renderer()
+    for ax, filename in zip(flat_axes, filenames):
+        bbox = ax.get_tightbbox(renderer).transformed(fig.dpi_scale_trans.inverted()).padded(0.15)
+        fig.savefig(INDIVIDUAL_FIG_DIR / filename, dpi=180, bbox_inches=bbox)
 
 
 def parse_malformed_space_row(line: str) -> list[str] | None:
@@ -59,16 +72,16 @@ def read_log(path: Path) -> tuple[pd.DataFrame, int]:
 
 def paired_test(table: pd.DataFrame, metric: str) -> dict[str, float | str]:
     pivot = table.pivot(index="participant", columns="condition", values=metric).dropna()
-    move = pivot["MoveDistance"].to_numpy()
-    touch = pivot["ScreenTouch"].to_numpy()
+    move = pivot["Ours"].to_numpy()
+    touch = pivot["Baseline"].to_numpy()
     diff = move - touch
     if np.allclose(diff, 0):
         return {
             "metric": metric,
             "n_pairs": len(diff),
-            "MoveDistance_mean": move.mean(),
-            "ScreenTouch_mean": touch.mean(),
-            "mean_difference_Move_minus_Touch": 0.0,
+            "Ours_mean": move.mean(),
+            "Baseline_mean": touch.mean(),
+            "mean_difference_Ours_minus_Baseline": 0.0,
             "difference_95ci_low": 0.0,
             "difference_95ci_high": 0.0,
             "cohen_dz": 0.0,
@@ -86,9 +99,9 @@ def paired_test(table: pd.DataFrame, metric: str) -> dict[str, float | str]:
     return {
         "metric": metric,
         "n_pairs": len(diff),
-        "MoveDistance_mean": move.mean(),
-        "ScreenTouch_mean": touch.mean(),
-        "mean_difference_Move_minus_Touch": diff.mean(),
+        "Ours_mean": move.mean(),
+        "Baseline_mean": touch.mean(),
+        "mean_difference_Ours_minus_Baseline": diff.mean(),
         "difference_95ci_low": stats.t.interval(0.95, len(diff) - 1, loc=diff.mean(), scale=stats.sem(diff))[0],
         "difference_95ci_high": stats.t.interval(0.95, len(diff) - 1, loc=diff.mean(), scale=stats.sem(diff))[1],
         "cohen_dz": diff.mean() / diff.std(ddof=1) if diff.std(ddof=1) else math.nan,
@@ -207,6 +220,9 @@ def phase_metrics(
 def main() -> None:
     OUT_DIR.mkdir(parents=True, exist_ok=True)
     FIG_DIR.mkdir(parents=True, exist_ok=True)
+    INDIVIDUAL_FIG_DIR.mkdir(parents=True, exist_ok=True)
+    for existing_figure in INDIVIDUAL_FIG_DIR.glob("*.png"):
+        existing_figure.unlink()
     sns.set_theme(style="whitegrid", context="notebook")
 
     loaded = []
@@ -237,12 +253,12 @@ def main() -> None:
     for global_index, frame in enumerate(sessions):
         participant = global_index // 6 + 1
         participant_session = global_index % 6 + 1
-        condition = "MoveDistance" if frame["scene"].iloc[0] == "MoveNavScene" else "ScreenTouch"
+        condition = "Ours" if frame["scene"].iloc[0] == "MoveNavScene" else "Baseline"
         condition_session = (
             sum(
                 1
                 for previous in sessions[participant * 6 - 6 : global_index]
-                if ("MoveDistance" if previous["scene"].iloc[0] == "MoveNavScene" else "ScreenTouch") == condition
+                if ("Ours" if previous["scene"].iloc[0] == "MoveNavScene" else "Baseline") == condition
             )
             + 1
         )
@@ -464,12 +480,32 @@ def main() -> None:
     ]
     fig, axes = plt.subplots(2, 4, figsize=(18, 9))
     for ax, (metric, title) in zip(axes.flat, plot_metrics):
-        sns.pointplot(data=participant_condition, x="condition", y=metric, errorbar=("ci", 95), capsize=.15, ax=ax)
-        sns.stripplot(data=participant_condition, x="condition", y=metric, hue="participant", palette="tab10", ax=ax, legend=False)
+        sns.pointplot(
+            data=participant_condition, x="condition", y=metric, order=CONDITIONS,
+            errorbar=("ci", 95), capsize=.15, ax=ax,
+        )
+        sns.stripplot(
+            data=participant_condition, x="condition", y=metric, order=CONDITIONS,
+            hue="participant", palette="tab10", ax=ax, legend=False,
+        )
         ax.set_title(title)
         ax.set_xlabel("")
     fig.suptitle("Condition comparison: participant-level means with 95% CI", fontsize=16)
     fig.tight_layout()
+    save_individual_axes(
+        fig,
+        axes,
+        [
+            "condition_comparison_active_duration.png",
+            "condition_comparison_time_to_first_answer.png",
+            "condition_comparison_time_between_answers.png",
+            "condition_comparison_candidate_changes.png",
+            "condition_comparison_detail_entries.png",
+            "condition_comparison_pose_losses.png",
+            "condition_comparison_position_depth_path_distance.png",
+            "condition_comparison_selection_accuracy.png",
+        ],
+    )
     fig.savefig(FIG_DIR / "condition_comparison.png", dpi=180)
     plt.close(fig)
 
@@ -483,6 +519,16 @@ def main() -> None:
     axes[0, 0].legend(ncol=2, fontsize=8)
     fig.suptitle("Paired participant trajectories", fontsize=16)
     fig.tight_layout()
+    save_individual_axes(
+        fig,
+        axes,
+        [
+            "paired_trajectory_active_duration.png",
+            "paired_trajectory_time_to_first_answer.png",
+            "paired_trajectory_time_between_answers.png",
+            "paired_trajectory_candidate_changes.png",
+        ],
+    )
     fig.savefig(FIG_DIR / "paired_participant_trajectories.png", dpi=180)
     plt.close(fig)
 
@@ -492,20 +538,36 @@ def main() -> None:
         ["active_duration_s", "candidate_changes", "selection_accuracy"],
         ["Active duration", "Candidate changes", "Selection accuracy"],
     ):
-        sns.lineplot(data=session_df, x="condition_session", y=metric, hue="condition", marker="o", errorbar=("ci", 95), ax=ax)
+        sns.lineplot(
+            data=session_df, x="condition_session", y=metric, hue="condition",
+            hue_order=CONDITIONS, marker="o", errorbar=("ci", 95), ax=ax,
+        )
         ax.set_title(title)
         ax.set_xticks([1, 2, 3])
     fig.suptitle("Within-condition session-order trend", fontsize=16)
     fig.tight_layout()
+    save_individual_axes(
+        fig,
+        axes,
+        [
+            "session_order_active_duration.png",
+            "session_order_candidate_changes.png",
+            "session_order_selection_accuracy.png",
+        ],
+    )
     fig.savefig(FIG_DIR / "session_order_trends.png", dpi=180)
     plt.close(fig)
 
     mode_plot = mode_df.groupby(["condition", "mode"], as_index=False)["duration_s"].mean()
     fig, ax = plt.subplots(figsize=(10, 6))
-    sns.barplot(data=mode_plot, x="condition", y="duration_s", hue="mode", hue_order=MODE_ORDER, ax=ax)
+    sns.barplot(
+        data=mode_plot, x="condition", y="duration_s", order=CONDITIONS,
+        hue="mode", hue_order=MODE_ORDER, ax=ax,
+    )
     ax.set_title("Mean time spent in interaction modes per session")
     ax.set_ylabel("Duration (s)")
     fig.tight_layout()
+    save_individual_axes(fig, [ax], ["mode_duration.png"])
     fig.savefig(FIG_DIR / "mode_duration.png", dpi=180)
     plt.close(fig)
 
@@ -517,6 +579,7 @@ def main() -> None:
     sns.heatmap(session_df[corr_cols].corr(), annot=True, fmt=".2f", cmap="vlag", center=0, ax=ax)
     ax.set_title("Session-level metric correlations")
     fig.tight_layout()
+    save_individual_axes(fig, [ax], ["metric_correlations.png"])
     fig.savefig(FIG_DIR / "metric_correlations.png", dpi=180)
     plt.close(fig)
 
@@ -530,6 +593,11 @@ def main() -> None:
         ax.set_ylabel("")
     fig.suptitle("Observed mode transition paths", fontsize=16)
     fig.tight_layout()
+    save_individual_axes(
+        fig,
+        axes,
+        ["mode_transition_paths_ours.png", "mode_transition_paths_baseline.png"],
+    )
     fig.savefig(FIG_DIR / "mode_transition_paths.png", dpi=180)
     plt.close(fig)
 
@@ -547,6 +615,15 @@ def main() -> None:
             ax.set_ylabel("camera-space depth")
     fig.suptitle("Event-sampled position/depth heatmaps", fontsize=16)
     fig.tight_layout()
+    save_individual_axes(
+        fig,
+        axes,
+        [
+            f"position_depth_heatmap_{condition.lower()}_{mode.lower()}.png"
+            for condition in CONDITIONS
+            for mode in MODE_ORDER
+        ],
+    )
     fig.savefig(FIG_DIR / "position_depth_heatmaps.png", dpi=180)
     plt.close(fig)
 
@@ -563,6 +640,11 @@ def main() -> None:
         ax.set_ylabel("camera-space depth")
     fig.suptitle("Event-sampled movement trajectories (green = session start)", fontsize=16)
     fig.tight_layout()
+    save_individual_axes(
+        fig,
+        axes,
+        ["movement_trajectories_ours.png", "movement_trajectories_baseline.png"],
+    )
     fig.savefig(FIG_DIR / "movement_trajectories.png", dpi=180)
     plt.close(fig)
 
@@ -578,11 +660,20 @@ def main() -> None:
         ["pre_3s_candidate_changes", "pre_3s_path_distance", "pre_3s_depth_delta"],
         ["Candidate changes in prior 3 s", "Path distance in prior 3 s", "Depth change in prior 3 s"],
     ):
-        sns.barplot(data=transition_pre, x="direction", y=metric, hue="condition", ax=ax)
+        sns.barplot(data=transition_pre, x="direction", y=metric, hue="condition", hue_order=CONDITIONS, ax=ax)
         ax.set_title(title)
         ax.set_xlabel("")
     fig.suptitle("Behavior immediately before mode transitions", fontsize=16)
     fig.tight_layout()
+    save_individual_axes(
+        fig,
+        axes,
+        [
+            "pre_transition_candidate_changes.png",
+            "pre_transition_path_distance.png",
+            "pre_transition_depth_change.png",
+        ],
+    )
     fig.savefig(FIG_DIR / "pre_transition_behavior.png", dpi=180)
     plt.close(fig)
 
@@ -602,11 +693,12 @@ def main() -> None:
         wrong_selection_touches_rule=("wrong_selection_touches_rule", "mean"),
     ).melt(id_vars="condition", var_name="metric", value_name="mean_per_task")
     fig, ax = plt.subplots(figsize=(9, 6))
-    sns.barplot(data=wrong_touch_plot, x="metric", y="mean_per_task", hue="condition", ax=ax)
+    sns.barplot(data=wrong_touch_plot, x="metric", y="mean_per_task", hue="condition", hue_order=CONDITIONS, ax=ax)
     ax.set_title("Wrong touches: no space_pressed before the next touch")
     ax.set_xlabel("")
     ax.set_ylabel("Mean wrong touches per task")
     fig.tight_layout()
+    save_individual_axes(fig, [ax], ["wrong_touches_rule.png"])
     fig.savefig(FIG_DIR / "wrong_touches_rule.png", dpi=180)
     plt.close(fig)
 
@@ -622,11 +714,12 @@ def main() -> None:
         value_name="mean_per_task",
     )
     fig, ax = plt.subplots(figsize=(12, 6))
-    sns.barplot(data=wrong_plot, x="metric", y="mean_per_task", hue="condition", ax=ax)
+    sns.barplot(data=wrong_plot, x="metric", y="mean_per_task", hue="condition", hue_order=CONDITIONS, ax=ax)
     ax.set_title("Wrong-visit proxies per task")
     ax.set_xlabel("")
     ax.tick_params(axis="x", rotation=20)
     fig.tight_layout()
+    save_individual_axes(fig, [ax], ["wrong_visit_proxies.png"])
     fig.savefig(FIG_DIR / "wrong_visit_proxies.png", dpi=180)
     plt.close(fig)
 
@@ -645,7 +738,7 @@ def main() -> None:
         "## Design and interpretation",
         "",
         "- 36 sessions: 6 participants x 6 sessions.",
-        "- Conditions: MoveDistance and ScreenTouch, 3 sessions per participant per condition.",
+        "- Conditions: Ours and Baseline, 3 sessions per participant per condition.",
         "- Participants were inferred from chronological blocks of six sessions.",
         "- `space_pressed` is treated as the answer timestamp.",
         "- Every `space_pressed` is a correct answer, so selection accuracy is correct space presses / all space presses.",
@@ -671,7 +764,7 @@ def main() -> None:
 
     print(f"Wrote analysis to {OUT_DIR}")
     print(compact.round(3))
-    print(tests[["metric", "mean_difference_Move_minus_Touch", "paired_t_p", "cohen_dz"]].round(4))
+    print(tests[["metric", "mean_difference_Ours_minus_Baseline", "paired_t_p", "cohen_dz"]].round(4))
 
 
 if __name__ == "__main__":
