@@ -1921,10 +1921,18 @@ nav a.active {
   margin-bottom: 18px;
 }
 
+.result-figure-grid + .result-figure-wide {
+  margin-top: 18px;
+}
+
 .result-figure-grid {
   display: grid;
   grid-template-columns: repeat(2,1fr);
   gap: 18px;
+}
+
+.result-figure-span {
+  grid-column: 1 / -1;
 }
 
 .result-figure figcaption {
