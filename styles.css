@@ -1995,9 +1995,9 @@ nav a.active {
 
 .result-figure {
   margin: 0;
-  padding: 12px;
+  padding: 14px;
   border: 1px solid var(--line);
-  background: rgba(255,255,255,.2);
+  background: rgba(255,255,255,.28);
 }
 
 .result-figure-wide {
@@ -2019,12 +2019,14 @@ nav a.active {
 }
 
 .result-figure figcaption {
-  padding: 13px 4px 2px;
-  color: #66705e;
-  font-family: var(--mono);
-  font-size: .55rem;
-  line-height: 1.6;
-  letter-spacing: .03em;
+  margin-top: 12px;
+  padding: 14px 16px;
+  border-top: 1px solid rgba(17,21,15,.12);
+  background: rgba(232,235,223,.58);
+  color: #3f4938;
+  font-size: .82rem;
+  line-height: 1.65;
+  letter-spacing: -.01em;
 }
 
 .subjective-grid {
