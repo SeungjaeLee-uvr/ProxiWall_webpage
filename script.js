@@ -19,32 +19,35 @@ const candidateNames = [
 function updateWallCandidates(pointerX = 34, pointerY = 50, mode = "OVERVIEW") {
   if (!wallPlane || !wallModeTag || !candidateLabel || !candidateCards.length) return;
 
-  const activeIndex = Math.min(
+  const yIndex = Math.min(
     candidateCards.length - 1,
     Math.max(0, Math.floor((pointerY / 100) * candidateCards.length))
   );
+  const activeIndex = mode === "OVERVIEW" ? 0 : yIndex;
+  const layoutCenter = mode === "OVERVIEW" ? (candidateCards.length - 1) / 2 : activeIndex;
   const visibleRange = mode === "OVERVIEW" ? 4 : mode === "BROWSING" ? 2 : 1;
   const cardWidth = mode === "OVERVIEW" ? 30 : mode === "BROWSING" ? 44 : 68;
   const cardHeight = mode === "OVERVIEW" ? 38 : mode === "BROWSING" ? 58 : 86;
 
   wallModeTag.textContent = mode;
-  candidateLabel.textContent = `Candidate: ${candidateNames[activeIndex]}`;
+  candidateLabel.textContent = mode === "OVERVIEW" ? "Candidate: Gallery Set" : `Candidate: ${candidateNames[activeIndex]}`;
   wallPlane.style.setProperty("--focus-x", `${Math.min(86, Math.max(14, pointerX))}%`);
   wallPlane.style.setProperty("--focus-y", `${Math.min(82, Math.max(18, pointerY))}%`);
 
   candidateCards.forEach((card, index) => {
-    const offset = index - activeIndex;
+    const offset = index - layoutCenter;
     const visible = Math.abs(offset) <= visibleRange;
     const spread = mode === "OVERVIEW" ? 28 : mode === "BROWSING" ? 48 : 18;
-    const scale = index === activeIndex ? 1.22 : mode === "DETAIL" ? .58 : .82;
+    const isActive = mode !== "OVERVIEW" && index === activeIndex;
+    const scale = isActive ? 1.22 : mode === "DETAIL" ? .58 : .82;
 
-    card.classList.toggle("is-active", index === activeIndex);
+    card.classList.toggle("is-active", isActive);
     card.style.setProperty("--card-w", `${cardWidth}px`);
     card.style.setProperty("--card-h", `${cardHeight}px`);
     card.style.setProperty("--candidate-x", "0px");
     card.style.setProperty("--candidate-y", `${offset * spread}px`);
     card.style.setProperty("--candidate-scale", scale);
-    card.style.setProperty("--candidate-opacity", visible ? (index === activeIndex ? 1 : .58) : 0);
+    card.style.setProperty("--candidate-opacity", visible ? (isActive ? 1 : .58) : 0);
   });
 }
 
