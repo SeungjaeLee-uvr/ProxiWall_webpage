@@ -9,6 +9,7 @@ interface for HMD-free virtual museum exploration on a wall display.
 - `concept.html` — interaction modes and project evolution
 - `system.html` — tracking, rendering, and interaction pipeline
 - `research.html` — final study design, quantitative results, qualitative findings, and discussion
+- `demo.html` — embedded prototype demo clips
 - `archive.html` — downloadable proposal, interview, progress, evaluation, and final decks
 
 ## Local preview

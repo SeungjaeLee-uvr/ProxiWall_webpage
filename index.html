@@ -6,13 +6,13 @@
   <title>ProxiWall — Distance-Driven Museum Exploration</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./styles.css"><script src="./script.js" defer></script>
+  <link rel="stylesheet" href="./styles.css"><script src="./script.js?v=home-candidates" defer></script>
 </head>
 <body>
   <div class="ambient ambient-one"></div><div class="ambient ambient-two"></div>
   <header class="site-header">
     <a class="wordmark" href="./index.html"><span class="wordmark-dot"></span>PROXIWALL</a>
-    <nav aria-label="Main navigation"><a href="./concept.html">Concept</a><a href="./system.html">System</a><a href="./research.html">Research</a><a href="./archive.html">Archive</a></nav>
+    <nav aria-label="Main navigation"><a href="./concept.html">Concept</a><a href="./system.html">System</a><a href="./research.html">Research</a><a href="./demo.html">Demo</a><a href="./archive.html">Archive</a></nav>
     <a class="header-cta" href="./archive.html">Project files <span>↗</span></a>
   </header>
   <main id="top">
@@ -28,7 +28,18 @@
         <div class="zone-label zone-overview">OVERVIEW<br><b>&gt; 2.0 m</b></div><div class="zone-label zone-browse">BROWSING<br><b>0.7–2.0 m</b></div><div class="zone-label zone-detail">DETAIL<br><b>≤ 0.7 m</b></div>
         <div class="range range-three"></div><div class="range range-two"></div><div class="range range-one"></div>
         <div class="presence" id="presence"><span class="presence-core"></span></div>
-        <div class="wall-plane"><div class="wall-line"></div><span>LED WALL / 5.4 × 3.1 M</span></div>
+        <div class="wall-plane" id="wall-plane">
+          <div class="wall-line"></div>
+          <div class="wall-screen">
+            <div class="wall-mode-tag" id="wall-mode-tag">OVERVIEW</div>
+            <div class="candidate-stage" id="candidate-stage">
+              <i class="candidate-card"></i><i class="candidate-card"></i><i class="candidate-card"></i><i class="candidate-card"></i>
+              <i class="candidate-card"></i><i class="candidate-card"></i><i class="candidate-card"></i><i class="candidate-card"></i>
+            </div>
+            <div class="candidate-caption"><b id="candidate-label">Candidate: Celadon Bowl</b><small>Pointer controls browsing</small></div>
+          </div>
+          <span>LED WALL / 5.4 × 3.1 M</span>
+        </div>
         <div class="distance-readout"><span>DISTANCE / MODE</span><strong id="distance">2.42 m · OVERVIEW</strong></div>
       </div>
     </section>

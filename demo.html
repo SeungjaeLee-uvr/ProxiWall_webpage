@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="ProxiWall demo videos showing distance-driven semantic zoom and touch selection on a wall display.">
+  <title>Demo — ProxiWall</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./styles.css"><script src="./script.js?v=demo-youtube" defer></script>
+</head>
+<body>
+<header class="site-header"><a class="wordmark" href="./index.html"><span class="wordmark-dot"></span>PROXIWALL</a><nav><a href="./concept.html">Concept</a><a href="./system.html">System</a><a href="./research.html">Research</a><a class="active" href="./demo.html">Demo</a><a href="./archive.html">Archive</a></nav><a class="header-cta" href="./assets/docs/3DID-Final.pdf">Final PDF <span>↗</span></a></header>
+<main class="page-shell">
+  <section class="page-hero"><p class="eyebrow"><span>04</span> Demo Videos</p><h1>See ProxiWall<br><em>in motion.</em></h1><p class="lede">This page is prepared for YouTube demo links. Each card can show a thumbnail and open an embedded player when a YouTube URL is added.</p></section>
+
+  <section class="demo-showcase">
+    <div class="section-heading"><div><p class="section-index">01 / YOUTUBE PLAYLIST</p><h2>Thumbnail cards now.<br><span>Links later.</span></h2></div><p>When YouTube links are ready, paste them into each card's <code>data-youtube-url</code>. The page will derive the video thumbnail and open the video in a modal player.</p></div>
+    <div class="youtube-card-grid">
+      <button class="youtube-card is-pending" type="button" data-youtube-url="" data-title="Browse and touch selection" aria-disabled="true">
+        <span class="youtube-thumb"><i>LINK PENDING</i><b>▶</b></span>
+        <span class="youtube-meta">DEMO 01</span>
+        <strong>Browse + touch selection</strong>
+        <p>Short clip showing artifact browsing on the wall display and touch confirmation.</p>
+      </button>
+      <button class="youtube-card is-pending" type="button" data-youtube-url="" data-title="Overview to browsing transition" aria-disabled="true">
+        <span class="youtube-thumb"><i>LINK PENDING</i><b>▶</b></span>
+        <span class="youtube-meta">DEMO 02</span>
+        <strong>Overview to browsing</strong>
+        <p>Prepared slot for a clip showing the distance-driven transition into browsing mode.</p>
+      </button>
+      <button class="youtube-card is-pending" type="button" data-youtube-url="" data-title="Full task walkthrough" aria-disabled="true">
+        <span class="youtube-thumb"><i>LINK PENDING</i><b>▶</b></span>
+        <span class="youtube-meta">DEMO 03</span>
+        <strong>Full task walkthrough</strong>
+        <p>Prepared slot for a complete two-target search, selection, and confirmation flow.</p>
+      </button>
+    </div>
+  </section>
+</main>
+<footer><div><p class="eyebrow"><span>NEXT</span> Project Archive</p><h2><a href="./archive.html">Download project files ↗</a></h2></div></footer>
+<div class="youtube-modal" id="youtube-modal" hidden>
+  <button class="youtube-modal-backdrop" type="button" data-youtube-close aria-label="Close video"></button>
+  <div class="youtube-modal-panel" role="dialog" aria-modal="true" aria-labelledby="youtube-modal-title">
+    <div class="youtube-modal-top"><h2 id="youtube-modal-title">Demo video</h2><button type="button" data-youtube-close>Close</button></div>
+    <div class="youtube-player" id="youtube-player"></div>
+  </div>
+</div>
+</body>
+</html>
