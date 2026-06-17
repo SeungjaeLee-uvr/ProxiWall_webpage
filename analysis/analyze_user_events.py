@@ -21,8 +21,8 @@ OUT_DIR = ROOT / "analysis" / "results"
 FIG_DIR = OUT_DIR / "figures"
 INDIVIDUAL_FIG_DIR = FIG_DIR / "individual"
 CONDITIONS = ["Ours", "Baseline"]
-MODE_ORDER = ["Overview", "Browsing", "TouchConfirmed", "Detail"]
-MODE_RANK = {"Overview": 0, "Browsing": 1, "TouchConfirmed": 2, "Detail": 3}
+MODE_ORDER = ["Overview", "Browsing", "Detail"]
+MODE_RANK = {"Overview": 0, "Browsing": 1, "Detail": 2}
 
 
 def save_individual_axes(fig: plt.Figure, axes, filenames: list[str]) -> None:
@@ -204,8 +204,6 @@ def phase_metrics(
                 "pose_losses_before_answer": int((phase["event"] == "pose_tracking_lost").sum()),
                 "path_distance_before_answer": path,
                 "target_proxy_index": target_proxy,
-                "wrong_candidate_visit_events_proxy": int((candidate != target_proxy).sum()) if pd.notna(target_proxy) else math.nan,
-                "wrong_unique_candidates_proxy": int(candidate[candidate != target_proxy].nunique()) if pd.notna(target_proxy) else math.nan,
                 "wrong_detail_visits_proxy": int((detail_visits["visit_index"] != target_proxy).sum()) if pd.notna(target_proxy) else math.nan,
                 "wrong_selection_confirmations_proxy": int((confirmations != target_proxy).sum()) if pd.notna(target_proxy) else math.nan,
                 "wrong_touches_rule": int(phase_literal_touches["wrong_touch"].sum()),
@@ -315,7 +313,7 @@ def main() -> None:
             "detail_entries": int((frame["event"] == "detail_entered").sum()),
             "detail_exits": int((frame["event"] == "detail_exited").sum()),
             "selection_confirmations": int((frame["event"] == "selection_confirmed").sum()),
-            "mode_changes": int((frame["event"] == "mode_changed").sum()),
+            "mode_changes": 0,
             "forward_mode_transitions": 0,
             "backward_mode_transitions": 0,
             "pose_losses": int((frame["event"] == "pose_tracking_lost").sum()),
@@ -348,6 +346,10 @@ def main() -> None:
             if not match:
                 continue
             from_mode, to_mode = match.groups()
+            if to_mode == "TouchConfirmed":
+                continue
+            if from_mode == "TouchConfirmed":
+                from_mode = "Browsing"
             before = frame[
                 (frame["timestamp_utc"] >= row["timestamp_utc"] - pd.Timedelta(seconds=3))
                 & (frame["timestamp_utc"] < row["timestamp_utc"])
@@ -378,6 +380,9 @@ def main() -> None:
                     "pre_3s_depth_delta": row["depth"] - before["depth"].iloc[0] if len(before) else math.nan,
                 }
             )
+        session_rows[-1]["mode_changes"] = sum(
+            row["source_file"] == base["source_file"] for row in transition_rows
+        )
         session_rows[-1]["forward_mode_transitions"] = sum(
             row["direction"] == "forward" for row in transition_rows if row["source_file"] == base["source_file"]
         )
@@ -416,8 +421,6 @@ def main() -> None:
         ["participant", "participant_order", "condition"], as_index=False
     ).agg(
         task_completion_time_s=("answer_latency_s", "mean"),
-        wrong_candidate_visit_events_proxy=("wrong_candidate_visit_events_proxy", "mean"),
-        wrong_unique_candidates_proxy=("wrong_unique_candidates_proxy", "mean"),
         wrong_detail_visits_proxy=("wrong_detail_visits_proxy", "mean"),
         wrong_selection_confirmations_proxy=("wrong_selection_confirmations_proxy", "mean"),
         wrong_touches_per_task_rule=("wrong_touches_rule", "mean"),
@@ -445,8 +448,6 @@ def main() -> None:
             "path_distance_position_depth",
             "correct_alignment_rate",
             "selection_accuracy",
-            "wrong_candidate_visit_events_proxy",
-            "wrong_unique_candidates_proxy",
             "wrong_detail_visits_proxy",
             "wrong_selection_confirmations_proxy",
             "wrong_touches_rule",
@@ -584,24 +585,46 @@ def main() -> None:
     plt.close(fig)
 
     transition_counts = transition_df.groupby(["condition", "transition"], as_index=False).size()
-    fig, axes = plt.subplots(1, 2, figsize=(16, 6))
-    for ax, condition in zip(axes, CONDITIONS):
-        subset = transition_counts[transition_counts["condition"] == condition].sort_values("size", ascending=False)
-        sns.barplot(data=subset, y="transition", x="size", ax=ax)
-        ax.set_title(condition)
-        ax.set_xlabel("Transition count")
-        ax.set_ylabel("")
-    fig.suptitle("Observed mode transition paths", fontsize=16)
-    fig.tight_layout()
-    save_individual_axes(
-        fig,
-        axes,
-        ["mode_transition_paths_ours.png", "mode_transition_paths_baseline.png"],
+    transition_order = (
+        transition_counts.groupby("transition")["size"].sum().sort_values(ascending=False).index
     )
+    transition_totals = transition_df.groupby("condition").size()
+    baseline_increase = (
+        transition_totals["Baseline"] / transition_totals["Ours"] - 1
+    ) * 100
+    fig, ax = plt.subplots(figsize=(13, 8))
+    sns.barplot(
+        data=transition_counts,
+        y="transition",
+        x="size",
+        hue="condition",
+        hue_order=CONDITIONS,
+        order=transition_order,
+        ax=ax,
+    )
+    ax.set_title("Mode transition paths: Ours vs Baseline", fontsize=16, pad=34)
+    ax.text(
+        .5,
+        1.02,
+        (
+            f"Total transitions — Ours: {transition_totals['Ours']} "
+            f"({transition_totals['Ours'] / 18:.2f}/session) · "
+            f"Baseline: {transition_totals['Baseline']} "
+            f"({transition_totals['Baseline'] / 18:.2f}/session) · "
+            f"Baseline +{baseline_increase:.1f}%"
+        ),
+        transform=ax.transAxes,
+        ha="center",
+        color="#555555",
+    )
+    ax.set_xlabel("Observed transition count across 18 sessions per condition")
+    ax.set_ylabel("")
+    fig.tight_layout()
+    save_individual_axes(fig, [ax], ["mode_transition_paths.png"])
     fig.savefig(FIG_DIR / "mode_transition_paths.png", dpi=180)
     plt.close(fig)
 
-    fig, axes = plt.subplots(2, 4, figsize=(18, 9), sharex=True, sharey=True)
+    fig, axes = plt.subplots(2, len(MODE_ORDER), figsize=(15, 9), sharex=True, sharey=True)
     for row_idx, condition in enumerate(CONDITIONS):
         for col_idx, mode in enumerate(MODE_ORDER):
             ax = axes[row_idx, col_idx]
@@ -679,8 +702,6 @@ def main() -> None:
 
     answer_summary = answer_df.groupby("condition").agg(
         task_completion_time_s=("answer_latency_s", "mean"),
-        wrong_candidate_visit_events_proxy=("wrong_candidate_visit_events_proxy", "mean"),
-        wrong_unique_candidates_proxy=("wrong_unique_candidates_proxy", "mean"),
         wrong_detail_visits_proxy=("wrong_detail_visits_proxy", "mean"),
         wrong_selection_confirmations_proxy=("wrong_selection_confirmations_proxy", "mean"),
         wrong_touches_rule=("wrong_touches_rule", "mean"),
@@ -705,17 +726,21 @@ def main() -> None:
     wrong_plot = answer_summary.reset_index().melt(
         id_vars="condition",
         value_vars=[
-            "wrong_candidate_visit_events_proxy",
-            "wrong_unique_candidates_proxy",
             "wrong_detail_visits_proxy",
             "wrong_selection_confirmations_proxy",
         ],
         var_name="metric",
         value_name="mean_per_task",
     )
+    wrong_plot["metric"] = wrong_plot["metric"].map(
+        {
+            "wrong_detail_visits_proxy": "Wrong detail entries",
+            "wrong_selection_confirmations_proxy": "Wrong selections",
+        }
+    )
     fig, ax = plt.subplots(figsize=(12, 6))
     sns.barplot(data=wrong_plot, x="metric", y="mean_per_task", hue="condition", hue_order=CONDITIONS, ax=ax)
-    ax.set_title("Wrong-visit proxies per task")
+    ax.set_title("Wrong explicit interactions per task")
     ax.set_xlabel("")
     ax.tick_params(axis="x", rotation=20)
     fig.tight_layout()

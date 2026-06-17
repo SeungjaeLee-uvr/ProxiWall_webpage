@@ -21,7 +21,7 @@ function updateWallCandidates(pointerX = 34, pointerY = 50, mode = "OVERVIEW") {
 
   const activeIndex = Math.min(
     candidateCards.length - 1,
-    Math.max(0, Math.floor((pointerX / 100) * candidateCards.length))
+    Math.max(0, Math.floor((pointerY / 100) * candidateCards.length))
   );
   const visibleRange = mode === "OVERVIEW" ? 4 : mode === "BROWSING" ? 2 : 1;
   const cardWidth = mode === "OVERVIEW" ? 30 : mode === "BROWSING" ? 44 : 68;
@@ -35,15 +35,15 @@ function updateWallCandidates(pointerX = 34, pointerY = 50, mode = "OVERVIEW") {
   candidateCards.forEach((card, index) => {
     const offset = index - activeIndex;
     const visible = Math.abs(offset) <= visibleRange;
-    const rowOffset = mode === "OVERVIEW" ? (index % 2 === 0 ? -32 : 34) : 0;
-    const spread = mode === "OVERVIEW" ? 36 : mode === "BROWSING" ? 48 : 18;
+    const columnOffset = mode === "OVERVIEW" ? (index % 2 === 0 ? -34 : 34) : 0;
+    const spread = mode === "OVERVIEW" ? 30 : mode === "BROWSING" ? 48 : 18;
     const scale = index === activeIndex ? 1.22 : mode === "DETAIL" ? .58 : .82;
 
     card.classList.toggle("is-active", index === activeIndex);
     card.style.setProperty("--card-w", `${cardWidth}px`);
     card.style.setProperty("--card-h", `${cardHeight}px`);
-    card.style.setProperty("--candidate-x", `${offset * spread}px`);
-    card.style.setProperty("--candidate-y", `${rowOffset + (pointerY - 50) * .18}px`);
+    card.style.setProperty("--candidate-x", `${columnOffset + (pointerX - 50) * .16}px`);
+    card.style.setProperty("--candidate-y", `${offset * spread}px`);
     card.style.setProperty("--candidate-scale", scale);
     card.style.setProperty("--candidate-opacity", visible ? (index === activeIndex ? 1 : .58) : 0);
   });

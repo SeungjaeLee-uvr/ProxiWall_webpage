@@ -20,7 +20,7 @@
 - 탐색: 후보 변경 수, 고유 후보 수, 탐색 방향 반전 수
 - Wrong Touch: 한 `touch_started`와 다음 `touch_started` 사이에 `space_pressed`가 없으면 앞선 touch를 wrong으로 판정
 - Wrong Selection Touch: 같은 규칙을 유물 선택 이벤트인 `selection_confirmed`에 적용
-- Wrong Visit proxy: 최종 응답 유물을 목표로 간주한 오답 후보 방문과 오답 Detail 진입
+- Wrong Visit proxy: 최종 응답 유물을 목표로 간주한 오답 Detail 진입과 selection confirmation
 - 상세 보기: Detail 진입/이탈 수, selection confirmation 수
 - 모드 전환: 전체/forward/backward 전환 수, 실제 전환 경로, 전환 직전 3초의 후보 변경·이동·depth 변화
 - 트래킹: pose loss 수와 누적 pose loss 시간
@@ -44,9 +44,8 @@
 | Detail 진입 수 | 3.28회 | 6.39회 | Baseline에서 상세 진입이 많음 |
 | Pose loss 수 | 2.44회 | 4.61회 | Baseline에서 발생 횟수가 많음 |
 | position-depth 경로 길이 | 3.68 | 3.74 | 컨디션 차이가 거의 없음 |
-| 모드 전환 수 | 12.28회 | 19.72회 | Baseline에서 전환이 더 많음 |
+| 모드 전환 수 | 9.00회 | 19.72회 | TouchConfirmed를 제외해도 Baseline에서 전환이 더 많음 |
 | backward 모드 전환 수 | 3.61회 | 8.89회 | Baseline에서 이전 단계 복귀가 더 많음 |
-| Wrong candidate visit event proxy/task | 7.11회 | 4.83회 | Ours에서 후보 스캔이 더 많음 |
 | Wrong Detail/confirmation proxy/task | 0.50회 | 1.94회 | Baseline에서 목표 외 상세 진입 proxy가 더 많음 |
 | Wrong Touch/task | 1.69회 | 9.58회 | Baseline에서 응답 없이 이어진 터치가 많음 |
 | Wrong Touch/session | 3.61회 | 19.22회 | Baseline에서 평균 15.61회 많음 |
@@ -55,7 +54,7 @@
 
 사용자별 paired t-test에서 `Ours`는 Task Completion Time(`p=.0262`), 활성 시간(`p=.0338`), 첫 응답 시간(`p=.0467`)이 유의하게 짧았다. Pose loss 발생 횟수도 더 적었다(`p=.0303`). 후보 변경 수 차이는 효과크기는 크지만(`dz=1.02`) 표본 6명에서 `p=.0549`로 경계 수준이다.
 
-모드 경로는 시스템 설계 차이를 그대로 보여준다. Ours는 `Browsing → TouchConfirmed → Detail` 경로를 사용하고, Baseline는 `Browsing → Detail`로 직접 진입한다. 따라서 단순 총 전환 수만으로 자연스러움을 판단하면 안 되며, backward 전환과 전환 직전 행동을 함께 보는 편이 적절하다.
+전환 분석에서는 Ours에만 존재하는 일시적 시스템 상태 `TouchConfirmed`를 무시한다. 따라서 `Browsing → TouchConfirmed → Detail`은 하나의 `Browsing → Detail` 전환으로 계산한다. 이 기준에서도 Baseline의 전환 수가 더 많으며, backward 전환과 전환 직전 행동을 함께 보는 편이 적절하다.
 
 전환 직전 3초 동안 Ours는 Baseline보다 후보 변경과 position-depth 경로 이동이 많았다. 특히 Ours의 forward 전환 직전 depth 변화가 양수로 나타나, 거리 기반 Semantic Zoom의 “전진 후 상세 단계 진입” 패턴을 Discussion 자료로 사용할 수 있다.
 
@@ -71,6 +70,7 @@
 - 모든 `space_pressed`를 정답으로 판정하므로 Accuracy는 계산 가능하지만, 두 조건 모두 100%인 ceiling effect가 있다.
 - Wrong Touch는 사용자 정의 규칙에 따라 계산되므로 실제 목표 유물을 건드렸는지와는 독립적이다. 화면 이동·상세 종료용 터치도 `touch_started`라면 wrong으로 포함된다.
 - 실제 유물 선택만 보고 싶을 때는 `wrong_selection_touches_rule`을 사용한다.
+- `candidate_changed`는 단순히 지나간 후보까지 포함하므로 Wrong Visit에서 제외하고 탐색 행동 지표로만 사용한다.
 - Wrong Visit proxy는 `space_pressed` 시점의 selected/candidate를 목표로 간주하므로 실제 목표 유물이 잘못 선택된 경우 왜곡된다.
 - `space_pressed` 시점만으로는 발화 내용의 의미적 정오를 판별할 수 없다.
 - 위치는 연속 프레임 샘플이 아니라 이벤트 발생 시점 샘플이므로, 히트맵 밀도는 실제 체류시간과 정확히 같지 않다.
@@ -85,7 +85,7 @@
 | Task Completion Time | 완료 | task별/세션별 시간 및 paired test |
 | Selection Accuracy | 완료 | 모든 `space_pressed`를 정답으로 판정하여 조건별 100% |
 | Mode Transition Count | 완료 | 전체, forward/backward, 경로별 전환 |
-| Mode-wise Dwell Time | 완료 | 조건·세션별 Overview/Browsing/TouchConfirmed/Detail 체류 |
+| Mode-wise Dwell Time | 완료 | 조건·세션별 Overview/Browsing/Detail 체류; TouchConfirmed 제외 |
 | Wrong Touches | 완료 | 연속 touch 사이 `space_pressed` 존재 여부로 판정 |
 | Wrong Candidate Visits | proxy 완료 | 최종 응답 유물 기준 후보/Detail 오답 방문 |
 | 이동 궤적/히트맵 | 완료 | 조건·모드별 히트맵과 세션 궤적 |
